@@ -14,10 +14,11 @@ namespace PublicTransportSimulator
         public int last_stop { get;set; }
         public int next_stop { get; set; }
         public double progress { get; set; }
+        public int stay_time { get; set; }
 
         public PublicTransport()
         {
-
+            stay_time = 0;
         }
 
         public PublicTransport(PublicTransport obj)
