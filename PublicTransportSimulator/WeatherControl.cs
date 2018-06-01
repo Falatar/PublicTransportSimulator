@@ -15,6 +15,12 @@ namespace PublicTransportSimulator
         public WeatherControl()
         {
             InitializeComponent();
+            //pictureBox1.Image = Image.FromFile("kata.jpg");
+        }
+
+        private void label10_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

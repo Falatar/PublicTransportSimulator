@@ -54,3 +54,14 @@ C:\Users\Игорь\git\PublicTransportSimulator\PublicTransportSimulator\obj\De
 C:\Users\Игорь\git\PublicTransportSimulator\PublicTransportSimulator\obj\Debug\PublicTransportSimulator.exe
 C:\Users\Игорь\git\PublicTransportSimulator\PublicTransportSimulator\obj\Debug\PublicTransportSimulator.pdb
 C:\Users\Игорь\git\PublicTransportSimulator\PublicTransportSimulator\bin\Debug\PublicTransportSimulator.pdb
+C:\Users\Игорь\git\PublicTransportSimulator\PublicTransportSimulator\bin\Debug\Emgu.CV.UI.dll
+C:\Users\Игорь\git\PublicTransportSimulator\PublicTransportSimulator\bin\Debug\ZedGraph.dll
+C:\Users\Игорь\git\PublicTransportSimulator\PublicTransportSimulator\bin\Debug\Emgu.CV.World.dll
+C:\Users\Игорь\git\PublicTransportSimulator\PublicTransportSimulator\bin\Debug\Emgu.CV.UI.pdb
+C:\Users\Игорь\git\PublicTransportSimulator\PublicTransportSimulator\bin\Debug\Emgu.CV.UI.xml
+C:\Users\Игорь\git\PublicTransportSimulator\PublicTransportSimulator\bin\Debug\ZedGraph.xml
+C:\Users\Игорь\git\PublicTransportSimulator\PublicTransportSimulator\bin\Debug\Emgu.CV.World.pdb
+C:\Users\Игорь\git\PublicTransportSimulator\PublicTransportSimulator\bin\Debug\Emgu.CV.World.xml
+C:\Users\Игорь\git\PublicTransportSimulator\PublicTransportSimulator\bin\Debug\zh-CN\Emgu.CV.UI.resources.dll
+C:\Users\Игорь\git\PublicTransportSimulator\PublicTransportSimulator\bin\Debug\zh-CN\ZedGraph.resources.dll
+C:\Users\Игорь\git\PublicTransportSimulator\PublicTransportSimulator\obj\Debug\PublicTransportSimulator.WeatherControl.resources

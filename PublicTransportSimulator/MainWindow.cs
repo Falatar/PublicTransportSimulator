@@ -32,6 +32,21 @@ namespace PublicTransportSimulator
         private List<BusStop> map_stops = new List<BusStop>(); //Коллекция остановок
         private List<Route> map_routes = new List<Route>(); //Коллекция маршрутов
         private List<PublicTransport> map_transport = new List<PublicTransport>(); //Коллекция транспортных средств
+        List<int> lines = new List<int>(); //Список путей
+        List<List<double>> lineWeigths = new List<List<double>>(); //Список весов
+
+        private int weatherLvl = 2; //Погодные условия
+        private double weatherStep = 0.05; //Начальный шаг
+        private double weatherDev = 0.5; //Максимальное отклонение от выбранных уловий
+
+        private int aveTemperture = 15; //Среднесуточная температура
+        private int temperatureDev = 5; //Допустимое отклонение температуры от средней
+        private double minTempWeigth = 0.005; //Минимальное влияние температуры
+        private double maxTempWeigth = 0.02; //Максимальное влияние температуры
+
+        private int timer = 0; //Счётчик времени
+
+        
 
         public MainWindow()
         {
@@ -113,7 +128,6 @@ namespace PublicTransportSimulator
                     }
                 }
             }
-            List<int> lines = new List<int>();
             for (int i = 0; i < map_stops.Count; i++)
             {
                 AddPoint(map_stops[i].coord_X, map_stops[i].coord_Y);
@@ -132,6 +146,22 @@ namespace PublicTransportSimulator
                     }
                 }
             }
+            //Заполнение файла весов
+            /*Random rnd = new Random();
+            using (StreamWriter sw = new StreamWriter("weigths.txt", false, System.Text.Encoding.Default))
+            {
+                for (int i = 0; i < lines.Count / 2; i++)
+                {
+                    string toFile = "";
+                    for (int j = 0; j < 48; j++)
+                    {
+                        toFile += ((double)rnd.Next(3000, 7000) / 10000).ToString();
+                        if (j != 47) toFile += " ";
+                    }
+                    sw.WriteLine(toFile);
+                }
+            }*/
+
             for (int i = 0; i < lines.Count; i += 2)
             {
                 AddRoute(map_stops[lines[i] - 1].coord_X, map_stops[lines[i] - 1].coord_Y, map_stops[lines[i + 1] - 1].coord_X, map_stops[lines[i + 1] - 1].coord_Y);
@@ -161,6 +191,17 @@ namespace PublicTransportSimulator
                         Route newRoute = new Route(tmp);
                         map_routes.Add(newRoute);
                     }
+                }
+            }
+            using (StreamReader sR = new StreamReader("weigths.txt"))
+            {
+                while (true)
+                {
+                    string temp = sR.ReadLine();
+                    if (temp == null) break;
+                    List<double> tmp = new List<double>();
+                    tmp = spaceDouble_Parsing(temp);
+                    lineWeigths.Add(tmp);
                 }
             }
             using (StreamReader sR = new StreamReader("transports.txt"))
@@ -249,11 +290,20 @@ namespace PublicTransportSimulator
         {
             double i = 0;
             double speed = (double)numericUpDown1.Value * 10 / 36;
+            int timePoint = 0;
             while (true)
             {
                 Stopwatch sw = Stopwatch.StartNew();
                 // do the work in the loop
 
+                timeBox.Text = timer.ToString();
+                timer++;
+                if (timer % 1800 == 0) timePoint++;
+                if (timer == (24 * 3600))
+                {
+                    timePoint = 0;
+                    timer = 0;
+                }
                 int counter = 0;
                 foreach (var mT in markersOverlayTransport.Markers)
                 {
@@ -269,7 +319,22 @@ namespace PublicTransportSimulator
                                 break;
                             }
                         }
-                        double change = speed / distance;
+                        int lineNumber = 0;
+                        for (int j = 0; j < lines.Count; j += 2)
+                        {
+                            if (lines[j] == map_transport[counter].next_stop && lines[j + 1] == map_transport[counter].last_stop)
+                            {
+                                lineNumber = j / 2;
+                                break;
+                            }
+                            if (lines[j + 1] == map_transport[counter].next_stop && lines[j] == map_transport[counter].last_stop)
+                            {
+                                lineNumber = j / 2;
+                                break;
+                            }
+                        }
+                        Random rand = new Random();
+                        double change = speed / distance * (lineWeigths[lineNumber][timePoint] - (Math.Abs(aveTemperture - 15) + rand.Next(0, temperatureDev)) * maxTempWeigth / temperatureDev - Math.Abs(weatherLvl - 2) * weatherStep * rand.Next(0, (int)(weatherDev*10000) / 10000));
                         map_transport[counter].progress += change; //пройденный процент пути
                         double lat = (map_stops[map_transport[counter].next_stop - 1].coord_X - map_stops[map_transport[counter].last_stop - 1].coord_X) * change;
                         double lng = (map_stops[map_transport[counter].next_stop - 1].coord_Y - map_stops[map_transport[counter].last_stop - 1].coord_Y) * change;
@@ -370,6 +435,22 @@ namespace PublicTransportSimulator
             }
             return result;
         }
+
+        private List<double> spaceDouble_Parsing(string space_str)
+        {
+            string temp = "";
+            List<double> result = new List<double>();
+            for (int i = 0; i < space_str.Length; i++)
+            {
+                if (space_str[i] != ' ') temp += space_str[i];
+                if (space_str[i] == ' ' || i == space_str.Length - 1)
+                {
+                    result.Add(double.Parse(temp, CultureInfo.InvariantCulture));
+                    temp = "";
+                }
+            }
+            return result;
+        }
         private void AddTrans(double latitude1, double longtitude1, double latitude2, double longtitude2, double progress)
         {
             double latitude, longtitude;
@@ -412,6 +493,12 @@ namespace PublicTransportSimulator
         {
             gMapControl1.Zoom = trackBar2.Value;
             label4.Text = gMapControl1.Zoom.ToString();
+        }
+
+        private void weatherToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            WeatherControl weather = new WeatherControl();
+            weather.ShowDialog();
         }
     }
 }
