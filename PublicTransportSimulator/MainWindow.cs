@@ -128,6 +128,7 @@ namespace PublicTransportSimulator
                     }
                 }
             }
+            List<int> dist = new List<int>();
             for (int i = 0; i < map_stops.Count; i++)
             {
                 AddPoint(map_stops[i].coord_X, map_stops[i].coord_Y);
@@ -143,6 +144,7 @@ namespace PublicTransportSimulator
                     {
                         lines.Add(map_stops[i].ID);
                         lines.Add(map_stops[i].adjacentIdList[j]);
+                        dist.Add(map_stops[i].adjacentRoadsList[j]);
                     }
                 }
             }
@@ -162,7 +164,28 @@ namespace PublicTransportSimulator
                 }
             }*/
 
-            for (int i = 0; i < lines.Count; i += 2)
+            using (StreamWriter sw = new StreamWriter("lines.txt", false, System.Text.Encoding.Default))
+            {
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    string ToFile = "";
+                    ToFile += lines[i].ToString();
+                    if (i != lines.Count - 1) ToFile += " ";
+                    sw.Write(ToFile);
+                }
+                sw.Write("\r\n");
+                for (int i = 0; i < dist.Count; i++)
+                {
+                    string ToFile = "";
+                    ToFile += dist[i].ToString();
+                    if (i != dist.Count - 1) ToFile += " ";
+                    sw.Write(ToFile);
+                }
+            }
+            
+
+
+                for (int i = 0; i < lines.Count; i += 2)
             {
                 AddRoute(map_stops[lines[i] - 1].coord_X, map_stops[lines[i] - 1].coord_Y, map_stops[lines[i + 1] - 1].coord_X, map_stops[lines[i + 1] - 1].coord_Y);
             }
@@ -291,6 +314,7 @@ namespace PublicTransportSimulator
             double i = 0;
             double speed = (double)numericUpDown1.Value * 10 / 36;
             int timePoint = 0;
+            StreamWriter swriter = new StreamWriter("stat.txt", true, System.Text.Encoding.Default);
             while (true)
             {
                 Stopwatch sw = Stopwatch.StartNew();
@@ -372,8 +396,10 @@ namespace PublicTransportSimulator
                                 {
                                     if (map_routes[route_num].way[j + 1] == map_routes[route_num].way[0]) next_stage = map_routes[route_num].way[1];
                                     else next_stage = map_routes[route_num].way[j + 2];
+                                    swriter.WriteLine(map_transport[counter].last_stop.ToString() + " " + map_transport[counter].next_stop + " " + (timer - map_transport[counter].outTime - 30).ToString());
                                     map_transport[counter].last_stop = map_transport[counter].next_stop;
                                     map_transport[counter].next_stop = next_stage;
+                                    map_transport[counter].outTime = timer;
                                     break;
                                 }
                             }
