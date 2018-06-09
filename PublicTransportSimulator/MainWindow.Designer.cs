@@ -33,6 +33,8 @@
             this.weatherToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.label6 = new System.Windows.Forms.Label();
+            this.timeBox = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.trackBar2 = new System.Windows.Forms.TrackBar();
@@ -48,8 +50,6 @@
             this.gMapControl1 = new GMap.NET.WindowsForms.GMapControl();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
-            this.timeBox = new System.Windows.Forms.TextBox();
-            this.label6 = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -121,8 +121,26 @@
             this.tabPage1.Padding = new System.Windows.Forms.Padding(4);
             this.tabPage1.Size = new System.Drawing.Size(1189, 534);
             this.tabPage1.TabIndex = 0;
-            this.tabPage1.Text = "tabPage1";
+            this.tabPage1.Text = "Map";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // label6
+            // 
+            this.label6.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(609, 503);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(40, 17);
+            this.label6.TabIndex = 26;
+            this.label6.Text = "TIME";
+            // 
+            // timeBox
+            // 
+            this.timeBox.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.timeBox.Location = new System.Drawing.Point(657, 500);
+            this.timeBox.Name = "timeBox";
+            this.timeBox.Size = new System.Drawing.Size(100, 22);
+            this.timeBox.TabIndex = 25;
             // 
             // label5
             // 
@@ -139,7 +157,7 @@
             // 
             this.label4.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(1061, 497);
+            this.label4.Location = new System.Drawing.Point(1052, 502);
             this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(46, 17);
@@ -186,7 +204,7 @@
             // numericUpDown1
             // 
             this.numericUpDown1.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
-            this.numericUpDown1.Location = new System.Drawing.Point(856, 502);
+            this.numericUpDown1.Location = new System.Drawing.Point(856, 500);
             this.numericUpDown1.Margin = new System.Windows.Forms.Padding(4);
             this.numericUpDown1.Name = "numericUpDown1";
             this.numericUpDown1.Size = new System.Drawing.Size(64, 22);
@@ -206,11 +224,15 @@
             // trackBar1
             // 
             this.trackBar1.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
-            this.trackBar1.Location = new System.Drawing.Point(384, 497);
+            this.trackBar1.Location = new System.Drawing.Point(402, 504);
             this.trackBar1.Margin = new System.Windows.Forms.Padding(4);
+            this.trackBar1.Maximum = 5;
+            this.trackBar1.Minimum = 1;
             this.trackBar1.Name = "trackBar1";
             this.trackBar1.Size = new System.Drawing.Size(193, 56);
             this.trackBar1.TabIndex = 17;
+            this.trackBar1.Value = 1;
+            this.trackBar1.ValueChanged += new System.EventHandler(this.trackBar1_ValueChanged);
             // 
             // ResetButton
             // 
@@ -300,7 +322,7 @@
             this.tabPage2.Padding = new System.Windows.Forms.Padding(4);
             this.tabPage2.Size = new System.Drawing.Size(1189, 534);
             this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "tabPage2";
+            this.tabPage2.Text = "Speed";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
             // richTextBox1
@@ -312,22 +334,6 @@
             this.richTextBox1.TabIndex = 0;
             this.richTextBox1.Text = "";
             // 
-            // timeBox
-            // 
-            this.timeBox.Location = new System.Drawing.Point(657, 492);
-            this.timeBox.Name = "timeBox";
-            this.timeBox.Size = new System.Drawing.Size(100, 22);
-            this.timeBox.TabIndex = 25;
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(609, 492);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(40, 17);
-            this.label6.TabIndex = 26;
-            this.label6.Text = "TIME";
-            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -338,7 +344,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "MainWindow";
-            this.Text = "Main Window";
+            this.Text = "PublicTransportSimulator";
             this.Load += new System.EventHandler(this.MainWindow_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();

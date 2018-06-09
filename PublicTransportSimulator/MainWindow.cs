@@ -15,17 +15,26 @@ using GMap.NET;
 using GMap.NET.MapProviders;
 using GMap.NET.WindowsForms;
 using GMap.NET.WindowsForms.Markers;
+using GMap.NET.WindowsForms.ToolTips;
+using System.Net.Sockets;
+using System.Net;
 
 namespace PublicTransportSimulator
 {
     public partial class MainWindow : Form
     {
+
+        private static IPAddress remoteIPAddress;
+        private static int remotePort;
+        private static int localPort;
+
         private ContextMenu markerMenu = new ContextMenu();
         private MenuItem command1 = null;
         private MenuItem command2 = null;
         private GMapOverlay markersOverlayStops = new GMapOverlay("Stops markers");
         private GMapOverlay markersOverlayTransport = new GMapOverlay("Transport markers");
         private GMapOverlay routes = new GMapOverlay("routes");
+        private int timeMultiplyer = 1000;
         private int kek = 0;
         private CancellationTokenSource cts;
 
@@ -33,7 +42,7 @@ namespace PublicTransportSimulator
         private List<Route> map_routes = new List<Route>(); //Коллекция маршрутов
         private List<PublicTransport> map_transport = new List<PublicTransport>(); //Коллекция транспортных средств
         List<int> lines = new List<int>(); //Список путей
-        List<List<double>> lineWeigths = new List<List<double>>(); //Список весов
+        List<List<double>> lineweights = new List<List<double>>(); //Список весов
 
         private int weatherLvl = 2; //Погодные условия
         private double weatherStep = 0.05; //Начальный шаг
@@ -41,12 +50,12 @@ namespace PublicTransportSimulator
 
         private int aveTemperture = 15; //Среднесуточная температура
         private int temperatureDev = 5; //Допустимое отклонение температуры от средней
-        private double minTempWeigth = 0.005; //Минимальное влияние температуры
-        private double maxTempWeigth = 0.02; //Максимальное влияние температуры
+        private double minTempweight = 0.005; //Минимальное влияние температуры
+        private double maxTempweight = 0.02; //Максимальное влияние температуры
 
         private int timer = 0; //Счётчик времени
 
-        
+
 
         public MainWindow()
         {
@@ -65,6 +74,11 @@ namespace PublicTransportSimulator
 
         private void MainWindow_Load(object sender, EventArgs e)
         {
+
+            localPort = 5001;
+            remotePort = 5002;
+            remoteIPAddress = IPAddress.Parse("127.0.0.1");
+
             command1 = new MenuItem("Your command name 1", new EventHandler(Method1));
             command2 = new MenuItem("Your command name 2", new EventHandler(Method2));
             markerMenu.MenuItems.Add(command1);
@@ -150,7 +164,7 @@ namespace PublicTransportSimulator
             }
             //Заполнение файла весов
             /*Random rnd = new Random();
-            using (StreamWriter sw = new StreamWriter("weigths.txt", false, System.Text.Encoding.Default))
+            using (StreamWriter sw = new StreamWriter("weights.txt", false, System.Text.Encoding.Default))
             {
                 for (int i = 0; i < lines.Count / 2; i++)
                 {
@@ -182,10 +196,10 @@ namespace PublicTransportSimulator
                     sw.Write(ToFile);
                 }
             }
-            
 
 
-                for (int i = 0; i < lines.Count; i += 2)
+
+            for (int i = 0; i < lines.Count; i += 2)
             {
                 AddRoute(map_stops[lines[i] - 1].coord_X, map_stops[lines[i] - 1].coord_Y, map_stops[lines[i + 1] - 1].coord_X, map_stops[lines[i + 1] - 1].coord_Y);
             }
@@ -224,7 +238,7 @@ namespace PublicTransportSimulator
                     if (temp == null) break;
                     List<double> tmp = new List<double>();
                     tmp = spaceDouble_Parsing(temp);
-                    lineWeigths.Add(tmp);
+                    lineweights.Add(tmp);
                 }
             }
             using (StreamReader sR = new StreamReader("transports.txt"))
@@ -307,7 +321,7 @@ namespace PublicTransportSimulator
             gMapControl1.Overlays.Add(routes);
         }
 
-        
+
 
         private async Task DoWorkAsyncInfiniteLoop(CancellationToken token)
         {
@@ -315,6 +329,8 @@ namespace PublicTransportSimulator
             double speed = (double)numericUpDown1.Value * 10 / 36;
             int timePoint = 0;
             StreamWriter swriter = new StreamWriter("stat.txt", true, System.Text.Encoding.Default);
+            int day = 1;
+            bool holiday = false;
             while (true)
             {
                 Stopwatch sw = Stopwatch.StartNew();
@@ -322,11 +338,23 @@ namespace PublicTransportSimulator
 
                 timeBox.Text = timer.ToString();
                 timer++;
-                if (timer % 1800 == 0) timePoint++;
+                Random rand = new Random();
+                int temperatureNow = aveTemperture + rand.Next(-temperatureDev, temperatureDev);
+                double weatherNow = weatherLvl + rand.Next(-(int)(weatherDev * 10000), (int)(weatherDev * 10000)) / 10000;
+                if (timer % 1800 == 0)
+                {
+                    temperatureNow = aveTemperture + rand.Next(-temperatureNow, temperatureDev);
+                    weatherNow = weatherLvl + rand.Next(-(int)(weatherDev * 10000), (int)(weatherDev * 10000)) / 10000;
+                    timePoint++;
+                }
                 if (timer == (24 * 3600))
                 {
                     timePoint = 0;
                     timer = 0;
+                    day++;
+                    holiday = false;
+                    if (day == 8) day = 1;
+                    if (rand.Next(0, 20) == 1) holiday = true;
                 }
                 int counter = 0;
                 foreach (var mT in markersOverlayTransport.Markers)
@@ -357,8 +385,34 @@ namespace PublicTransportSimulator
                                 break;
                             }
                         }
-                        Random rand = new Random();
-                        double change = speed / distance * (lineWeigths[lineNumber][timePoint] - (Math.Abs(aveTemperture - 15) + rand.Next(0, temperatureDev)) * maxTempWeigth / temperatureDev - Math.Abs(weatherLvl - 2) * weatherStep * rand.Next(0, (int)(weatherDev*10000) / 10000));
+                        double weightChange = lineweights[lineNumber][timePoint];
+                        switch (day)
+                        {
+                            case 1:
+                                weightChange *= 1;
+                                break;
+                            case 2:
+                                weightChange *= 0.98;
+                                break;
+                            case 3:
+                                weightChange *= 0.96;
+                                break;
+                            case 4:
+                                weightChange *= 0.99;
+                                break;
+                            case 5:
+                                weightChange *= 0.95;
+                                break;
+                            case 6:
+                                weightChange *= 0.83;
+                                break;
+                            case 7:
+                                weightChange *= 0.75;
+                                break;
+                        }
+                        if (holiday == true) weightChange *= 1.4;
+                        double weatherChange = weatherStep * Math.Abs(weatherNow - 2);
+                        double change = speed / distance * (weightChange - Math.Abs(temperatureNow - 15) * maxTempweight / temperatureDev - Math.Abs(weatherNow - 2) * (weatherChange));
                         map_transport[counter].progress += change; //пройденный процент пути
                         double lat = (map_stops[map_transport[counter].next_stop - 1].coord_X - map_stops[map_transport[counter].last_stop - 1].coord_X) * change;
                         double lng = (map_stops[map_transport[counter].next_stop - 1].coord_Y - map_stops[map_transport[counter].last_stop - 1].coord_Y) * change;
@@ -384,7 +438,7 @@ namespace PublicTransportSimulator
                             {
                                 if (map_transport[counter].ID == map_routes[j].ID)
                                 {
-             
+
                                     route_num = j;
                                     break;
                                 }
@@ -405,9 +459,11 @@ namespace PublicTransportSimulator
                             }
                         }
                     }
+                    int isHoliday;
+                    if (holiday == false) isHoliday = 0;
+                    else isHoliday = 1;
+                    Send(mT.Position.Lat.ToString() + " " + mT.Position.Lng.ToString() + " " + map_transport[counter].ID.ToString() + " " + timer.ToString() + " " + day.ToString() + " " + isHoliday.ToString() + " " + temperatureNow.ToString() + " " + weatherNow.ToString());
                     counter++;
-
-
                 }
 
                 string newData = DateTime.Now.ToLongTimeString();
@@ -521,10 +577,81 @@ namespace PublicTransportSimulator
             label4.Text = gMapControl1.Zoom.ToString();
         }
 
+        private void trackBar1_ValueChanged(object sender, EventArgs e)
+        {
+            switch (trackBar1.Value)
+            {
+                case 1:
+                    label1.Text = "x1";
+                    timeMultiplyer = 1000;
+                    break;
+
+                case 2:
+                    label1.Text = "x5";
+                    timeMultiplyer = 200;
+                    break;
+
+                case 3:
+                    label1.Text = "x20";
+                    timeMultiplyer = 50;
+                    break;
+
+                case 4:
+                    label1.Text = "x100";
+                    timeMultiplyer = 10;
+                    break;
+
+                case 5:
+                    label1.Text = "x300";
+                    timeMultiplyer = 10;
+                    break;
+            }
+        }
+
         private void weatherToolStripMenuItem_Click(object sender, EventArgs e)
         {
             WeatherControl weather = new WeatherControl();
             weather.ShowDialog();
         }
+
+        private static void Send(string datagram)
+        {
+            // Создаем UdpClient
+            UdpClient sender = new UdpClient();
+
+            // Создаем endPoint по информации об удаленном хосте
+            IPEndPoint endPoint = new IPEndPoint(remoteIPAddress, remotePort);
+
+            try
+            {
+                // Преобразуем данные в массив байтов
+                byte[] bytes = Encoding.UTF8.GetBytes(datagram);
+
+                // Отправляем данные
+                sender.Send(bytes, bytes.Length, endPoint);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Возникло исключение: " + ex.ToString() + "\n  " + ex.Message);
+            }
+            finally
+            {
+                // Закрыть соединение
+                sender.Close();
+            }
+        }
+
+        /*public static class RichTextBoxExtensions
+        {
+            public static void AppendText(this RichTextBox box, string text, Color color)
+            {
+                box.SelectionStart = box.TextLength;
+                box.SelectionLength = 0;
+
+                box.SelectionColor = color;
+                box.AppendText(text);
+                box.SelectionColor = box.ForeColor;
+            }
+        }*/
     }
-}
+    }
