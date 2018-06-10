@@ -75,8 +75,8 @@ namespace PublicTransportSimulator
         private void MainWindow_Load(object sender, EventArgs e)
         {
 
-            localPort = 5001;
-            remotePort = 5002;
+            localPort = 8001;
+            remotePort = 8002;
             remoteIPAddress = IPAddress.Parse("127.0.0.1");
 
             command1 = new MenuItem("Your command name 1", new EventHandler(Method1));
@@ -354,7 +354,7 @@ namespace PublicTransportSimulator
                     day++;
                     holiday = false;
                     if (day == 8) day = 1;
-                    if (rand.Next(0, 20) == 1) holiday = true;
+                    if (rand.Next(1, 20) == 1) holiday = true;
                 }
                 int counter = 0;
                 foreach (var mT in markersOverlayTransport.Markers)
@@ -450,7 +450,7 @@ namespace PublicTransportSimulator
                                 {
                                     if (map_routes[route_num].way[j + 1] == map_routes[route_num].way[0]) next_stage = map_routes[route_num].way[1];
                                     else next_stage = map_routes[route_num].way[j + 2];
-                                    swriter.WriteLine(map_transport[counter].last_stop.ToString() + " " + map_transport[counter].next_stop + " " + (timer - map_transport[counter].outTime - 30).ToString());
+                                    swriter.WriteLine(map_transport[counter].last_stop.ToString() + " " + map_transport[counter].next_stop + " " + (timer - map_transport[counter].outTime - 30).ToString() + " " + timer.ToString() + " " + day.ToString() + " " + holiday.ToString() + " " + temperatureNow.ToString() + " " + weatherNow.ToString());
                                     map_transport[counter].last_stop = map_transport[counter].next_stop;
                                     map_transport[counter].next_stop = next_stage;
                                     map_transport[counter].outTime = timer;
@@ -476,7 +476,7 @@ namespace PublicTransportSimulator
                     mT.Position = new PointLatLng(mT.Position.Lat + i, mT.Position.Lng + i);
                 }*/
                 // don't run again for at least 200 milliseconds
-                await Task.Delay(1000);
+                await Task.Delay(timeMultiplyer);
                 sw.Stop();
                 token.ThrowIfCancellationRequested();
                 label5.Text = sw.ElapsedMilliseconds.ToString();
